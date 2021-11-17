@@ -3,6 +3,7 @@
 
 run the following commands:
 pip install Flask
+export FLASK_APP=pos
 export FLASK_ENV=development
 
 
