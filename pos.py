@@ -16,28 +16,23 @@ class Item(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(100), unique=True, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.String(100), unique=True, nullable=False)
 
-    def __init__(self, id, description, quantity):
-        self.id = id
+    def __init__(self, description, quantity, price):
         self.description = description
         self.quantity = quantity
+        self.price = price
 
 @app.route('/')
 def hello():
-    print(1111)
-    return '<a href="/addperson"><button> Click here </button></a>'
+    return '<a href="/additem"><button> Click here </button></a>'
 
-@app.route("/addperson", methods=['POST'])
-def addperson():
-    print(22222)
+@app.route("/additem", methods=['POST'])
+def add_item():
     description = request.form["description"]
-    print(description)
     quantity = request.form["quantity"]
-    entry = Item(3, description, quantity)
-    print(entry)
-    print(22222)
+    price = request.form["price"]
+    entry = Item(description, quantity, price)
     db.session.add(entry)
     db.session.commit()
     return "coming soon" + description 
-# if __name__ == '__main__':
-#     app.run()
