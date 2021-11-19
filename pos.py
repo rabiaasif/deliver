@@ -35,7 +35,7 @@ def add_item():
     entry = Item(description, quantity, price)
     db.session.add(entry)
     db.session.commit()
-    return "coming soon" + description 
+    return "added menu item"
 
 
 @app.route("/get-menu-items")
@@ -46,3 +46,10 @@ def get_menu():
         print(item)
         menu_items += str(item.id) + " | " + item.description + " | " + item.price + "\n"
     return "Menu items:" + "\n" + menu_items
+
+@app.route("/delete-item-by-id/<id>", methods=["DELETE"])
+def delete_item(id):
+    item = Item.query.filter_by(id=id).first()
+    db.session.delete(item)
+    db.session.commit()
+    return "deleted"
