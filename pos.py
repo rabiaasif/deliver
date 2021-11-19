@@ -39,7 +39,7 @@ def add_item():
 
 
 @app.route("/get-menu-items")
-def get_items():
+def get_menu():
     # fix formatting
     menu_items = "id    |   description   |   price \n"
     for item in Item.query.all():
