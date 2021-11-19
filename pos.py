@@ -39,5 +39,10 @@ def add_item():
 
 
 @app.route("/get-menu-items")
-def add_item():
-    return "coming soon"
+def get_items():
+    # fix formatting
+    menu_items = "id    |   description   |   price \n"
+    for item in Item.query.all():
+        print(item)
+        menu_items += str(item.id) + " | " + item.description + " | " + item.price + "\n"
+    return "Menu items:" + "\n" + menu_items
