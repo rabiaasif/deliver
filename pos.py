@@ -36,3 +36,8 @@ def add_item():
     db.session.add(entry)
     db.session.commit()
     return "coming soon" + description 
+
+
+@app.route("/get-menu-items")
+def add_item():
+    return "coming soon"
