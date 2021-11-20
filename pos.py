@@ -48,18 +48,19 @@ def hello():
 
 @app.route("/additem", methods=['POST'])
 def add_item():
-    description = request.form["description"]
-    quantity = request.form["quantity"]
-    price = request.form["price"]
-    entry = Item(description, quantity, price)
-    db.session.add(entry)
-    db.session.commit()
-    return "added menu item"
-
+    try:
+        description = request.form["description"]
+        quantity = request.form["quantity"]
+        price = request.form["price"]
+        entry = Item(description, quantity, price)
+        db.session.add(entry)
+        db.session.commit()
+        return "Added Item to Menu: " + description + " quantity:" + str(quantity) + " price: $" + price
+    except:
+        return "Something went wrong...Menu items take a price, quantity, and description. Please try again."
 
 @app.route("/get-menu-items")
 def get_menu():
-    # fix formatting
     menu_items = "<div> <h1> Menu </h1>"
     menu_items  += " <table> <tr> <th>ID</th> <th>Description</th> <th>Price</th></tr>"
     for item in Item.query.all():
@@ -69,6 +70,10 @@ def get_menu():
 @app.route("/delete-item-by-id/<id>", methods=["DELETE"])
 def delete_item(id):
     item = Item.query.filter_by(id=id).first()
-    db.session.delete(item)
-    db.session.commit()
-    return "deleted"
+    try:
+        db.session.delete(item)
+        db.session.commit()
+        return "deleted item: " + str(item.id) + " " + item.description
+    except Exception as e:
+        print(e)
+        return "Something went wrong...perhaps this item does not exist"
