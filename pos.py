@@ -33,6 +33,7 @@ class Order(db.Model):
         self.payment_amount = payment_amount        
 
 class ItemsOrdered(db.Model):
+    __tablename__ = 'items_ordered'
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
     item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False)
@@ -44,9 +45,13 @@ class ItemsOrdered(db.Model):
 
 @app.route('/')
 def hello():
-    return '<a href="/additem"><button> Click here </button></a>'
+    return "go to -> /update-item-by-id/<id> to update an item on the menu. This is a post request and it has optional data to enter description, quantity, and price. id is required\n \
+    go to -> /add-item to add an item to the menu. This is a post request and it requires a description, quantity, and price \n \
+    go to -> /get-menu-items to retrive menu items. this is a get request and does not require any extra params or data \n \
+    go to -> /add-order to add an order from the menu. this is a post request. items is required and it takes the form item_id1,item_id3...,item_idn. note is optional  \
+    go to -> /delete-item-by-id/<id> to delete a menu item. replace <id> with the id you wish to delete \n"
 
-@app.route("/additem", methods=['POST'])
+@app.route("/add-item", methods=['POST'])
 def add_item():
     try:
         description = request.form["description"]
@@ -69,7 +74,6 @@ def get_menu():
         return menu_items + "</table> </div>"
     except:
         "Something went wrong..."
-
 
 @app.route("/delete-item-by-id/<id>", methods=["DELETE"])
 def delete_item(id):
@@ -98,3 +102,31 @@ def update_item(id):
     except Exception as e:
         print(e)
         return "Something went wrong... Please try again."
+
+@app.route("/add-order", methods=['POST'])
+def add_order():
+    try:
+        form_to_dict = request.form.to_dict()
+        note = ""
+        if 'note' in form_to_dict:
+            note = request.form['note']
+        items = request.form["items"].split(",")
+        payment_amount = 0
+        for id in items:
+            item = Item.query.filter_by(id=id).first()
+            payment_amount += int(item.price)
+        order = Order(note, payment_amount)
+        db.session.add(order)
+        order_description = ""
+        for id in items:
+            item = Item.query.filter_by(id=id).first()
+            order_description += item.description
+            if id != items[-1]:
+                order_description += ", "
+            entry = ItemsOrdered(order.id, item.id)
+            db.session.add(entry)
+        db.session.commit()
+        return "Added Order: " + order_description + ". \n The payment amount is: $" + str(payment_amount) + "\n Additional notes: " + note
+    except Exception as e:
+        print(e)
+        return "Something went wrong...to create an order provide items ids seperated by commas 1,2,3,4..."
