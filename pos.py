@@ -1,4 +1,5 @@
 from flask import request, Flask
+import json
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -8,9 +9,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 db.init_app(app)
-# migrate = Migrate(app, db)
-
-
 
 class Item(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -36,11 +34,13 @@ class ItemsOrdered(db.Model):
     __tablename__ = 'items_ordered'
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
     item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False)
 
-    def __init__(self, order_id, item_id):
+    def __init__(self, order_id, item_id, quantity):
         self.order_id = order_id
         self.item_id = item_id
+        self.quantity = quantity
 
 
 @app.route('/')
@@ -100,7 +100,6 @@ def update_item(id):
         db.session.commit()
         return "Added Item to updated: " + item.description + " quantity:" + str(item.quantity) + " price: $" + item.price
     except Exception as e:
-        print(e)
         return "Something went wrong... Please try again."
 
 @app.route("/add-order", methods=['POST'])
@@ -112,21 +111,28 @@ def add_order():
             note = request.form['note']
         items = request.form["items"].split(",")
         payment_amount = 0
-        for id in items:
-            item = Item.query.filter_by(id=id).first()
+        for id_and_quantity in items:
+            item_id = id_and_quantity.split(":")[0]
+            quantity = id_and_quantity.split(":")[-1]
+            item = Item.query.filter_by(id=item_id).first()
+            if int(quantity) > int(item.quantity):
+                return item.description + " only has " + str(item.quantity) + " available"
             payment_amount += int(item.price)
         order = Order(note, payment_amount)
         db.session.add(order)
         order_description = ""
-        for id in items:
-            item = Item.query.filter_by(id=id).first()
-            order_description += item.description
-            if id != items[-1]:
+        for id_and_quantity in items:
+            item_id = id_and_quantity.split(":")[0]
+            quantity = id_and_quantity.split(":")[-1]
+            item = Item.query.filter_by(id=item_id).first()
+            order_description += item.description 
+            if id_and_quantity != items[-1]:
                 order_description += ", "
-            entry = ItemsOrdered(order.id, item.id)
+            entry = ItemsOrdered(order.id, item.id, quantity)
+            item.quantity = int(item.quantity) - int(quantity)
+            item = db.session.merge(item)
             db.session.add(entry)
         db.session.commit()
         return  "The order id: "+ str(order.id) + "\n Added Order: " + order_description + ". \n The payment amount: $" + str(payment_amount) + "\n Additional notes: " + note
     except Exception as e:
-        print(e)
         return "Something went wrong...to create an order provide items ids seperated by commas 1,2,3,4..."
