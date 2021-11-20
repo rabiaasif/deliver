@@ -23,6 +23,25 @@ class Item(db.Model):
         self.quantity = quantity
         self.price = price
 
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    payment_amount = db.Column(db.String(100), nullable=False)
+    note = db.Column(db.String(100))
+
+    def __init__(self, note, payment_amount):
+        self.note = note
+        self.payment_amount = payment_amount        
+
+class ItemsOrdered(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False)
+
+    def __init__(self, order_id, item_id):
+        self.order_id = order_id
+        self.item_id = item_id
+
+
 @app.route('/')
 def hello():
     return '<a href="/additem"><button> Click here </button></a>'
