@@ -126,7 +126,7 @@ def add_order():
             entry = ItemsOrdered(order.id, item.id)
             db.session.add(entry)
         db.session.commit()
-        return "Added Order: " + order_description + ". \n The payment amount is: $" + str(payment_amount) + "\n Additional notes: " + note
+        return  "The order id: "+ str(order.id) + "\n Added Order: " + order_description + ". \n The payment amount: $" + str(payment_amount) + "\n Additional notes: " + note
     except Exception as e:
         print(e)
         return "Something went wrong...to create an order provide items ids seperated by commas 1,2,3,4..."
