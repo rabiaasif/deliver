@@ -61,11 +61,15 @@ def add_item():
 
 @app.route("/get-menu-items")
 def get_menu():
-    menu_items = "<div> <h1> Menu </h1>"
-    menu_items  += " <table> <tr> <th>ID</th> <th>Description</th> <th>Price</th></tr>"
-    for item in Item.query.all():
-        menu_items +=  "<tr>" + "<td>"+ str(item.id) + "</td>" + "<td>" +item.description + "</td>" + "<td>" + item.price + "</td>" + "</tr>"
-    return menu_items + "</table> </div>"
+    try:
+        menu_items = "<div> <h1> Menu </h1>"
+        menu_items  += " <table> <tr> <th>ID</th> <th>Description</th> <th>Price</th></tr>"
+        for item in Item.query.all():
+            menu_items +=  "<tr>" + "<td>"+ str(item.id) + "</td>" + "<td>" +item.description + "</td>" + "<td>" + item.price + "</td>" + "</tr>"
+        return menu_items + "</table> </div>"
+    except:
+        "Something went wrong..."
+
 
 @app.route("/delete-item-by-id/<id>", methods=["DELETE"])
 def delete_item(id):
@@ -75,5 +79,4 @@ def delete_item(id):
         db.session.commit()
         return "deleted item: " + str(item.id) + " " + item.description
     except Exception as e:
-        print(e)
         return "Something went wrong...perhaps this item does not exist"
