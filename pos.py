@@ -1,5 +1,4 @@
 from flask import request, Flask
-import json
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -104,8 +103,7 @@ def add_modifier():
         db.session.add(entry)
         db.session.commit()
         return "Added Modifier: " + name
-    except Exception as r:
-        print(r)
+    except:
         return "Something went wrong...Menu items take a price, quantity, and description. Please try again."
 
 @app.route("/menu")
@@ -129,7 +127,7 @@ def delete_item(id):
         db.session.delete(item)
         db.session.commit()
         return "<div> <h3>Deleted item</h3> <p> Item Id: " + str(item.id) + "</p> <p> Item Description:" + item.description
-    except Exception as e:
+    except:
         return "Something went wrong...perhaps this item does not exist"
 
 @app.route("/update-item-by-id/<id>", methods=["POST"])
@@ -152,7 +150,7 @@ def update_item(id):
         item = db.session.merge(item)
         db.session.commit()
         return "<div> <h3>Added Item to updated </h3> Description: " + item.description + " <br> Quantity: " + str(item.quantity) + " <br> Price: $" + item.price + modifier + "</div>"
-    except Exception as e:
+    except:
         return "Something went wrong... Please try again."
 
 @app.route("/add-order", methods=['POST'])
