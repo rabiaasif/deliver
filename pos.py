@@ -168,7 +168,7 @@ def add_order():
             item = Item.query.filter_by(id=item_id).first()
             if int(quantity) > int(item.quantity):
                 return item.description + " only has " + str(item.quantity) + " available"
-            payment_amount += float(item.price)
+            payment_amount += float(quantity) * float(item.price)
         order = Order(note, payment_amount)
         db.session.add(order)
         order_description = ""
@@ -185,7 +185,7 @@ def add_order():
             db.session.add(entry)
         db.session.commit()
         return  "<div> The order id: "+ str(order.id) + "<br> Order: " + order_description + ". <br> The payment amount: $" + str(payment_amount) + "<br> Additional notes: " + note
-    except Exception as e:
+    except:
         return "Something went wrong...to create an order provide items ids and quantity 4:1, 5:1 (item_id:quantity, item_id2:quantity,...)- should not be in quotes. Confirm that your item id exists"
 
 if __name__ == '__main__':  
