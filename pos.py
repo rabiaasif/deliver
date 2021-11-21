@@ -87,7 +87,7 @@ def add_item():
         entry = Item(description, quantity, float(price), item_modifier_id)
         db.session.add(entry)
         db.session.commit()
-        return "<div> <h3>Added Item to Menu</h3>  <p> Description: " + description +  "<p> <p>Quantity:" + str(quantity) + "</p> price: $" + price + " </p>" +  item_modifier + " </div>"
+        return "<div> <h3>Added Item to Menu</h3>" +  "<br> Item id: "+ str(entry.id) +  "<p> Description: " + description +  "<p> <p>Quantity:" + str(quantity) + "</p> price: $" + price + " </p>" +  item_modifier + " </div>"
     except:
         return "Something went wrong...Check the spelling of the data provided. Please make sure there is no $ infront of price"
 
