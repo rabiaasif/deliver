@@ -15,11 +15,13 @@ class Item(db.Model):
     description = db.Column(db.String(100), unique=True, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     price = db.Column(db.String(100), unique=True, nullable=False)
+    item_modifier_id = db.Column(db.Integer, db.ForeignKey('item_modifier.id'))
 
-    def __init__(self, description, quantity, price):
+    def __init__(self, description, quantity, price, item_modifier_id):
         self.description = description
         self.quantity = quantity
         self.price = price
+        self.item_modifier_id = item_modifier_id
 
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -42,6 +44,13 @@ class ItemsOrdered(db.Model):
         self.item_id = item_id
         self.quantity = quantity
 
+class ItemModifier(db.Model):
+    __tablename__ = 'item_modifier'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+
+    def __init__(self, name):
+        self.name = name
 
 @app.route('/')
 def hello():
@@ -53,24 +62,50 @@ def hello():
 
 @app.route("/add-item", methods=['POST'])
 def add_item():
+    '''
+    
+    '''
     try:
+        form_to_dict = request.form.to_dict()
         description = request.form["description"]
         quantity = request.form["quantity"]
         price = request.form["price"]
-        entry = Item(description, quantity, price)
+        item_modifier_id = None
+        if 'item_modifier_id' in form_to_dict:
+            item_modifier_id = request.form['item_modifier_id']
+        entry = Item(description, quantity, price, item_modifier_id)
         db.session.add(entry)
         db.session.commit()
         return "Added Item to Menu: " + description + " quantity:" + str(quantity) + " price: $" + price
     except:
         return "Something went wrong...Menu items take a price, quantity, and description. Please try again."
 
+
+@app.route("/add-modifier", methods=['POST'])
+def add_modifier():
+    '''
+    
+    '''
+    try:
+        name = request.form["name"]
+        entry = ItemModifier(name)
+        db.session.add(entry)
+        db.session.commit()
+        return "Added Modifier: " + name
+    except Exception as r:
+        print(r)
+        return "Something went wrong...Menu items take a price, quantity, and description. Please try again."
+
 @app.route("/get-menu-items")
 def get_menu():
     try:
         menu_items = "<div> <h1> Menu </h1>"
-        menu_items  += " <table> <tr> <th>ID</th> <th>Description</th> <th>Price</th></tr>"
+        menu_items  += " <table> <tr> <th>ID</th> <th>Description</th> <th>Price</th> <th>Modifer</th> </tr>"
         for item in Item.query.all():
-            menu_items +=  "<tr>" + "<td>"+ str(item.id) + "</td>" + "<td>" +item.description + "</td>" + "<td>" + "$" + item.price + "</td>" + "</tr>"
+            modifier = ""
+            if item.item_modifier_id:
+                modifier = ItemModifier.query.filter_by(id = item.item_modifier_id).first().name
+            menu_items +=  "<tr>" + "<td>"+ str(item.id) + "</td>" + "<td>" +item.description + "</td>" + "<td>" + "$" + item.price + "</td>" + "<td>" + modifier + "</td>" +  "</tr>"
         return menu_items + "</table> </div>"
     except:
         "Something went wrong..."
@@ -96,6 +131,8 @@ def update_item(id):
             item.price = request.form['price']
         if 'quantity' in form_to_dict:
             item.quantity = request.form['quantity']
+        if 'item_modifier_id' in form_to_dict:
+            item.quantity = request.form['item_modifier_id']
         item = db.session.merge(item)
         db.session.commit()
         return "Added Item to updated: " + item.description + " quantity:" + str(item.quantity) + " price: $" + item.price
@@ -136,3 +173,6 @@ def add_order():
         return  "The order id: "+ str(order.id) + "\n Added Order: " + order_description + ". \n The payment amount: $" + str(payment_amount) + "\n Additional notes: " + note
     except Exception as e:
         return "Something went wrong...to create an order provide items ids seperated by commas 1,2,3,4..."
+
+if __name__ == '__main__':  
+    app.run()
