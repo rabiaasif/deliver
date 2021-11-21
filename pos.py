@@ -84,7 +84,7 @@ def add_item():
             item_modifier_id = request.form['item_modifier_id']
             modifier = ItemModifier.query.filter_by(id = item_modifier_id).first().name
             item_modifier = "<p> Modifier Group: " + modifier +"</p>"
-        entry = Item(description, quantity, int(price), item_modifier_id)
+        entry = Item(description, quantity, float(price), item_modifier_id)
         db.session.add(entry)
         db.session.commit()
         return "<div> <h3>Added Item to Menu</h3>  <p> Description: " + description +  "<p> <p>Quantity:" + str(quantity) + "</p> price: $" + price + " </p>" +  item_modifier + " </div>"
@@ -102,9 +102,9 @@ def add_modifier():
         entry = ItemModifier(name, subgroup)
         db.session.add(entry)
         db.session.commit()
-        return "Added Modifier: " + name
+        return "Added Modifier: <br> id:" + str(entry.id) + "<br> name:" + name
     except:
-        return "Something went wrong...Menu items take a price, quantity, and description. Please try again."
+        return "Something went wrong...Body should include: name (required), and subgroup(optional)"
 
 @app.route("/menu")
 def get_menu():
@@ -138,7 +138,7 @@ def update_item(id):
         if 'description' in form_to_dict:
             item.description = request.form['description']
         if 'price' in form_to_dict:
-            item.price = int(request.form['price'])
+            item.price = float(request.form['price'])
         if 'quantity' in form_to_dict:
             item.quantity = request.form['quantity']
         modifier = "<br> Modifier Group: Not Updated"
@@ -168,7 +168,7 @@ def add_order():
             item = Item.query.filter_by(id=item_id).first()
             if int(quantity) > int(item.quantity):
                 return item.description + " only has " + str(item.quantity) + " available"
-            payment_amount += int(item.price)
+            payment_amount += float(item.price)
         order = Order(note, payment_amount)
         db.session.add(order)
         order_description = ""
