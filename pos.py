@@ -54,49 +54,56 @@ class ItemModifier(db.Model):
 
 @app.route('/')
 def hello():
-    return "go to -> /update-item-by-id/<id> to update an item on the menu. This is a post request and it has optional data to enter description, quantity, and price. id is required\n \
-    go to -> /add-item to add an item to the menu. This is a post request and it requires a description, quantity, and price \n \
-    go to -> /get-menu-items to retrive menu items. this is a get request and does not require any extra params or data \n \
-    go to -> /add-order to add an order from the menu. this is a post request. items is required and it takes the form item_id1,item_id3...,item_idn. note is optional  \
-    go to -> /delete-item-by-id/<id> to delete a menu item. replace <id> with the id you wish to delete \n"
+    description = "<div>"
+    description += "<h2> View Menu </h2>"
+    description += "<p> Go to <a href=\"/menu\"> /menu </a> This is a get request and doesnt require any additional information </p>"
+    description += "<h2> Add Menu Item </h2>"
+    description += "<p> Go to <a href=\"/add-item\"> /add-item </a> This is a post request and requires some additional information. Click 'Body' on post man and select 'x-www-form-urlencoded'. Required params: quantity (int), description (str), and price (int). item_modifier_id (int) is optional </p>"
+    description += "<h2> Add Modifier </h2>"
+    description += "<p> Go to <a href=\"/add-modifier\"> /add-modifier </a> This is a post request. Required body: name (str)</p>"
+    description += "<h2> Delete Menu Item </h2>"
+    description += "<p> Go to <a href=\"/delete-item-by-id/<id>\"> /delete-item-by-id/<id> </a> This is a delete request. Replace <id> with an item id to remove it from the menu. id is a required field</p>"
+    description += "<h2> Update Menu Item </h2>"
+    description += "<p> Go to <a href=\"/update-item-by-id/<id>\"> /update-item-by-id/<id> </a> This is a post request. This request takes optional body: quantity (int), description (str), price (int), item_modifier_id (int) </p>"
+
+    description += "<h2> Create An Order </h2>"
+    description += "<p> Go to <a href=\"/add-order\"> /add-order </a> This is a post request. it requires 'items' in the following format 4:1, 5:1 (item_id:quantity, item_id2:quantity,...). notes(str) is optional</p>"
+    description += "</div>"    
+    return description
+    
 
 @app.route("/add-item", methods=['POST'])
 def add_item():
-    '''
-    
-    '''
     try:
         form_to_dict = request.form.to_dict()
         description = request.form["description"]
         quantity = request.form["quantity"]
         price = request.form["price"]
         item_modifier_id = None
+        item_modifier = "<p> Modifier group: None </p>"
         if 'item_modifier_id' in form_to_dict:
             item_modifier_id = request.form['item_modifier_id']
-        entry = Item(description, quantity, price, item_modifier_id)
+            modifier = ItemModifier.query.filter_by(id = item_modifier_id).first().name
+            item_modifier = "<p> Modifier Group: " + modifier +"</p>"
+        entry = Item(description, quantity, int(price), item_modifier_id)
         db.session.add(entry)
         db.session.commit()
-        return "Added Item to Menu: " + description + " quantity:" + str(quantity) + " price: $" + price
+        return "<div> <h3>Added Item to Menu</h3>  <p> Description: " + description +  "<p> <p>Quantity:" + str(quantity) + "</p> price: $" + price + " </p>" +  item_modifier + " </div>"
     except:
-        return "Something went wrong...Menu items take a price, quantity, and description. Please try again."
-
+        return "Something went wrong...Check the spelling of the data provided. Please make sure there is no $ infront of price"
 
 @app.route("/add-modifier", methods=['POST'])
 def add_modifier():
-    '''
-    
-    '''
     try:
         name = request.form["name"]
         entry = ItemModifier(name)
         db.session.add(entry)
         db.session.commit()
         return "Added Modifier: " + name
-    except Exception as r:
-        print(r)
+    except:
         return "Something went wrong...Menu items take a price, quantity, and description. Please try again."
 
-@app.route("/get-menu-items")
+@app.route("/menu")
 def get_menu():
     try:
         menu_items = "<div> <h1> Menu </h1>"
@@ -116,7 +123,7 @@ def delete_item(id):
         item = Item.query.filter_by(id=id).first()
         db.session.delete(item)
         db.session.commit()
-        return "deleted item: " + str(item.id) + " " + item.description
+        return "<div> <h3>Deleted item</h3> <p> Item Id: " + str(item.id) + "</p> <p> Item Description:" + item.description
     except Exception as e:
         return "Something went wrong...perhaps this item does not exist"
 
@@ -128,14 +135,19 @@ def update_item(id):
         if 'description' in form_to_dict:
             item.description = request.form['description']
         if 'price' in form_to_dict:
-            item.price = request.form['price']
+            item.price = int(request.form['price'])
         if 'quantity' in form_to_dict:
             item.quantity = request.form['quantity']
+        modifier = "<br> Modifier Group: Not Updated"
+        if item.item_modifier_id:
+            modifier = "<br> Modifier Group: " + ItemModifier.query.filter_by(id = item.item_modifier_id).first().name
         if 'item_modifier_id' in form_to_dict:
-            item.quantity = request.form['item_modifier_id']
+            item.item_modifier_id = request.form['item_modifier_id']
+            modifier = "<br> Modifier Group: " + ItemModifier.query.filter_by(id = item.item_modifier_id).first().name
+
         item = db.session.merge(item)
         db.session.commit()
-        return "Added Item to updated: " + item.description + " quantity:" + str(item.quantity) + " price: $" + item.price
+        return "<div> <h3>Added Item to updated </h3> Description: " + item.description + " <br> Quantity: " + str(item.quantity) + " <br> Price: $" + item.price + modifier + "</div>"
     except Exception as e:
         return "Something went wrong... Please try again."
 
@@ -162,7 +174,7 @@ def add_order():
             item_id = id_and_quantity.split(":")[0]
             quantity = id_and_quantity.split(":")[-1]
             item = Item.query.filter_by(id=item_id).first()
-            order_description += item.description 
+            order_description += "(" + str(quantity) + ") " + item.description 
             if id_and_quantity != items[-1]:
                 order_description += ", "
             entry = ItemsOrdered(order.id, item.id, quantity)
@@ -170,7 +182,7 @@ def add_order():
             item = db.session.merge(item)
             db.session.add(entry)
         db.session.commit()
-        return  "The order id: "+ str(order.id) + "\n Added Order: " + order_description + ". \n The payment amount: $" + str(payment_amount) + "\n Additional notes: " + note
+        return  "<div> The order id: "+ str(order.id) + "<br> Order: " + order_description + ". <br> The payment amount: $" + str(payment_amount) + "<br> Additional notes: " + note
     except Exception as e:
         return "Something went wrong...to create an order provide items ids seperated by commas 1,2,3,4..."
 
