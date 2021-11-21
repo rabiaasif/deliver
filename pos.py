@@ -186,7 +186,7 @@ def add_order():
         db.session.commit()
         return  "<div> The order id: "+ str(order.id) + "<br> Order: " + order_description + ". <br> The payment amount: $" + str(payment_amount) + "<br> Additional notes: " + note
     except Exception as e:
-        return "Something went wrong...to create an order provide items ids and quantity 4:1, 5:1 (item_id:quantity, item_id2:quantity,...)- should not be in quotes"
+        return "Something went wrong...to create an order provide items ids and quantity 4:1, 5:1 (item_id:quantity, item_id2:quantity,...)- should not be in quotes. Confirm that your item id exists"
 
 if __name__ == '__main__':  
     app.run()
