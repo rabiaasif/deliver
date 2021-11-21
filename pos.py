@@ -62,7 +62,7 @@ def hello():
     description += "<h2> Add Menu Item </h2>"
     description += "<p> Go to <a href=\"/add-item\"> /add-item </a> This is a post request and requires some additional information. Click 'Body' on post man and select 'x-www-form-urlencoded'. Required params: quantity (int), description (str), and price (int). item_modifier_id (int) is optional </p>"
     description += "<h2> Add Modifier </h2>"
-    description += "<p> Go to <a href=\"/add-modifier\"> /add-modifier </a> This is a post request. Required body: name (str)</p>"
+    description += "<p> Go to <a href=\"/add-modifier\"> /add-modifier </a> This is a post request. Required body: name (str). Optional: subgroup (int) an id of another modifier</p>"
     description += "<h2> Delete Menu Item </h2>"
     description += "<p> Go to <a href=\"/delete-item-by-id/<id>\"> /delete-item-by-id/<id> </a> This is a delete request. Replace <id> with an item id to remove it from the menu. id is a required field</p>"
     description += "<h2> Update Menu Item </h2>"
