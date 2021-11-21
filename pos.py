@@ -48,9 +48,11 @@ class ItemModifier(db.Model):
     __tablename__ = 'item_modifier'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
+    subgroup = db.Column(db.Integer, db.ForeignKey('item_modifier.id'))
 
-    def __init__(self, name):
+    def __init__(self, name, subgroup):
         self.name = name
+        self.subgroup = subgroup
 
 @app.route('/')
 def hello():
@@ -65,12 +67,10 @@ def hello():
     description += "<p> Go to <a href=\"/delete-item-by-id/<id>\"> /delete-item-by-id/<id> </a> This is a delete request. Replace <id> with an item id to remove it from the menu. id is a required field</p>"
     description += "<h2> Update Menu Item </h2>"
     description += "<p> Go to <a href=\"/update-item-by-id/<id>\"> /update-item-by-id/<id> </a> This is a post request. This request takes optional body: quantity (int), description (str), price (int), item_modifier_id (int) </p>"
-
     description += "<h2> Create An Order </h2>"
     description += "<p> Go to <a href=\"/add-order\"> /add-order </a> This is a post request. it requires 'items' in the following format 4:1, 5:1 (item_id:quantity, item_id2:quantity,...). notes(str) is optional</p>"
     description += "</div>"    
     return description
-    
 
 @app.route("/add-item", methods=['POST'])
 def add_item():
@@ -95,12 +95,17 @@ def add_item():
 @app.route("/add-modifier", methods=['POST'])
 def add_modifier():
     try:
+        form_to_dict = request.form.to_dict()
         name = request.form["name"]
-        entry = ItemModifier(name)
+        subgroup = None
+        if 'subgroup' in form_to_dict:
+            subgroup = request.form["subgroup"]
+        entry = ItemModifier(name, subgroup)
         db.session.add(entry)
         db.session.commit()
         return "Added Modifier: " + name
-    except:
+    except Exception as r:
+        print(r)
         return "Something went wrong...Menu items take a price, quantity, and description. Please try again."
 
 @app.route("/menu")
@@ -144,7 +149,6 @@ def update_item(id):
         if 'item_modifier_id' in form_to_dict:
             item.item_modifier_id = request.form['item_modifier_id']
             modifier = "<br> Modifier Group: " + ItemModifier.query.filter_by(id = item.item_modifier_id).first().name
-
         item = db.session.merge(item)
         db.session.commit()
         return "<div> <h3>Added Item to updated </h3> Description: " + item.description + " <br> Quantity: " + str(item.quantity) + " <br> Price: $" + item.price + modifier + "</div>"
