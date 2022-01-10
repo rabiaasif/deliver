@@ -118,7 +118,7 @@ def get_menu():
             menu_items +=  "<tr>" + "<td>"+ str(item.id) + "</td>" + "<td>" +item.description + "</td>" + "<td>" + "$" + item.price + "</td>" + "<td>" + modifier + "</td>" +  "</tr>"
         return menu_items + "</table> </div>"
     except:
-        "Something went wrong..."
+        return "Something went wrong..."
 
 @app.route("/delete-item-by-id/<id>", methods=["DELETE"])
 def delete_item(id):
